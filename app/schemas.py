@@ -29,6 +29,7 @@ class GraphCreateResponse(BaseModel):
 
 
 class GraphReadResponse(BaseModel):
+    id: int
     nodes: list[Node]
     edges: list[Edge]
 

@@ -1,5 +1,5 @@
 import uvicorn
-import graph
+from app import graph
 
 from fastapi import FastAPI
 

@@ -7,9 +7,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
 
-from exceptions import graph_not_found, invalid_graph, node_not_found
-from schemas import GraphCreate
-from models import Graph, Node, Edge
+from app.exceptions import graph_not_found, invalid_graph, node_not_found
+from app.schemas import GraphCreate
+from app.models import Graph, Node, Edge
 
 dotenv.load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -51,17 +51,18 @@ def create_graph(graph: GraphCreate) -> Graph:
         if len(new_nodes) != len(graph.nodes):
             raise invalid_graph("Nodes must be unique")
         session.add_all(new_nodes.values())
-        print(new_nodes)
         session.flush()
         new_edges = []
         unique_edges: dict[str, list[str]] = {node.name: [] for node in graph.nodes}
         for edge in graph.edges:
+            if edge.source not in new_nodes:
+                raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.source}")
+            if edge.target not in new_nodes:
+                raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.target}")
             if edge.target in unique_edges[edge.source] or edge.source in unique_edges[edge.target]:
                 raise invalid_graph("Edges must be unique")
             if edge.source == edge.target:
                 raise invalid_graph("Edge source and target must be different")
-            if edge.source not in graph.nodes or edge.target not in graph.nodes:
-                raise invalid_graph("Edge nodes must be in nodes list")
             unique_edges[edge.source].append(edge.target)
             new_edges.append(Edge(source_id=new_nodes[edge.source].id, target_id=new_nodes[edge.target].id))
         _check_cycle(unique_edges)
@@ -107,4 +108,6 @@ def delete_node(graph_id: int, node_name: str):
     if not node_to_delete:
         raise node_not_found(node_name)
     session.delete(node_to_delete)
+    if len(nodes) == 1:
+        session.delete(nodes)
     session.commit()
