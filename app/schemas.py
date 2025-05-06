@@ -4,15 +4,24 @@ from pydantic import BaseModel
 class Node(BaseModel):
     name: str
 
+    class Config:
+        from_attributes = True
+
 
 class Edge(BaseModel):
     source: str
     target: str
 
+    class Config:
+        from_attributes = True
+
 
 class GraphCreate(BaseModel):
     nodes: list[Node]
     edges: list[Edge]
+
+    class Config:
+        from_attributes = True
 
 
 class GraphCreateResponse(BaseModel):

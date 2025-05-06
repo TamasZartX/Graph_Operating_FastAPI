@@ -1,5 +1,7 @@
-fastapi
-uvicorn
-sqlalchemy
+fastapi~=0.115.12
+uvicorn~=0.34.2
+sqlalchemy~=2.0.40
 psycopg2
-dotenv
+dotenv~=0.9.9
+pydantic~=2.11.4
+python-dotenv~=1.1.0
