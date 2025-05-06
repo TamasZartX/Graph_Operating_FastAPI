@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class Node(BaseModel):
-    name: str = Field(...,min_length=1, max_length=255, pattern="^[A-Za-z]+$")
+    name: str
 
     class Config:
         from_attributes = True

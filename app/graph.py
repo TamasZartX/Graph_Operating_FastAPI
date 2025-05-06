@@ -6,13 +6,13 @@ from app.schemas import GraphCreate, GraphCreateResponse, AdjacencyListResponse,
 router = APIRouter(prefix="/api/graph")
 
 
-@router.post("/", status_code=201, response_model=GraphCreateResponse, responses={400: {"description": "Failed to add graph", "model": ErrorResponse}}, summary="Create Graph", description="Ручка для создания графа, принимает граф в виде списка вершин и списка ребер.", operation_id="create_graph_api_graph__post")
+@router.post("/", status_code=201, response_model=GraphCreateResponse, responses={201: {"description": "Successful response"} ,400: {"description": "Failed to add graph", "model": ErrorResponse}}, summary="Create Graph", description="Ручка для создания графа, принимает граф в виде списка вершин и списка ребер.", operation_id="create_graph_api_graph__post")
 def post_graph(graph: GraphCreate):
     new_graph = create_graph(graph)
     return {"id": new_graph.id}
 
 
-@router.get("/{graph_id}", response_model=GraphReadResponse, responses={404: {"description": "Graph entity not found", "model": ErrorResponse}}, summary="Read Graph", description="Ручка для чтения графа в виде списка вершин и списка ребер.", operation_id="read_graph_api_graph__graph_id___get")
+@router.get("/{graph_id}/", response_model=GraphReadResponse, responses={404: {"description": "Graph entity not found", "model": ErrorResponse}}, summary="Read Graph", description="Ручка для чтения графа в виде списка вершин и списка ребер.", operation_id="read_graph_api_graph__graph_id___get")
 def get_graph(graph_id: int):
     [nodes, edge_schemas] = read_graph(graph_id, "default_list")
     return {"id": graph_id, "nodes": nodes, "edges": edge_schemas}

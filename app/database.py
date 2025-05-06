@@ -42,30 +42,39 @@ def create_graph(graph: GraphCreate) -> Graph:
     try:
         if not graph.nodes:
             raise invalid_graph("Graph must be not empty")
+        cnt_nodes = set()
+        for node in graph.nodes:
+            if node.name.isalpha() and len(node.name) <= 255 and all(
+                    'a' <= l <= 'z' or 'A' <= l <= 'Z' for l in node.name):
+                cnt_nodes.add(node.name)
+            else:
+                raise invalid_graph(
+                    "Node name must be made of only letters and length must be not more than 255 characters")
+        if len(cnt_nodes) != len(graph.nodes):
+            raise invalid_graph("Nodes must be unique")
+        unique_edges: dict[str, list[str]] = {node.name: [] for node in graph.nodes}
+        for edge in graph.edges:
+            unique_edges[edge.source].append(edge.target)
+            if edge.source not in cnt_nodes:
+                raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.source}")
+            if edge.target not in cnt_nodes:
+                raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.target}")
+            if edge.target in unique_edges[edge.source] or edge.source in unique_edges[edge.target]:
+                raise invalid_graph("Edges must be unique")
+            if edge.source == edge.target:
+                raise invalid_graph("Edge source and target must be different")
+        _check_cycle(unique_edges)
         new_graph = Graph()
         session.add(new_graph)
         session.flush()
         new_nodes = {}
         for node in graph.nodes:
             new_nodes[node.name] = Node(name=node.name, graph_id=new_graph.id)
-        if len(new_nodes) != len(graph.nodes):
-            raise invalid_graph("Nodes must be unique")
         session.add_all(new_nodes.values())
         session.flush()
         new_edges = []
-        unique_edges: dict[str, list[str]] = {node.name: [] for node in graph.nodes}
         for edge in graph.edges:
-            if edge.source not in new_nodes:
-                raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.source}")
-            if edge.target not in new_nodes:
-                raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.target}")
-            if edge.target in unique_edges[edge.source] or edge.source in unique_edges[edge.target]:
-                raise invalid_graph("Edges must be unique")
-            if edge.source == edge.target:
-                raise invalid_graph("Edge source and target must be different")
-            unique_edges[edge.source].append(edge.target)
             new_edges.append(Edge(source_id=new_nodes[edge.source].id, target_id=new_nodes[edge.target].id))
-        _check_cycle(unique_edges)
         session.add_all(new_edges)
         session.commit()
     except SQLAlchemyError as e:
