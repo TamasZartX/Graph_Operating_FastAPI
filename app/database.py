@@ -54,15 +54,15 @@ def create_graph(graph: GraphCreate) -> Graph:
             raise invalid_graph("Nodes must be unique")
         unique_edges: dict[str, list[str]] = {node.name: [] for node in graph.nodes}
         for edge in graph.edges:
-            unique_edges[edge.source].append(edge.target)
             if edge.source not in cnt_nodes:
                 raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.source}")
             if edge.target not in cnt_nodes:
                 raise invalid_graph(f"Edge nodes must be only from nodes list. Invalid node: {edge.target}")
-            if edge.target in unique_edges[edge.source] or edge.source in unique_edges[edge.target]:
-                raise invalid_graph("Edges must be unique")
             if edge.source == edge.target:
                 raise invalid_graph("Edge source and target must be different")
+            if edge.target in unique_edges[edge.source] or edge.source in unique_edges[edge.target]:
+                raise invalid_graph("Edges must be unique")
+            unique_edges[edge.source].append(edge.target)
         _check_cycle(unique_edges)
         new_graph = Graph()
         session.add(new_graph)
@@ -113,10 +113,11 @@ def delete_node(graph_id: int, node_name: str):
     if not nodes:
         raise graph_not_found(graph_id)
     node_ids = {node.name: node.id for node in nodes}
-    node_to_delete = session.get(Node, node_ids[node_name])
-    if not node_to_delete:
+    if not node_name in node_ids:
         raise node_not_found(node_name)
+    node_to_delete = session.get(Node, node_ids[node_name])
     session.delete(node_to_delete)
     if len(nodes) == 1:
-        session.delete(nodes)
+        graph = session.get(Graph, graph_id)
+        session.delete(graph)
     session.commit()
