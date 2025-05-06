@@ -3,6 +3,7 @@ import dotenv
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy_utils import database_exists, create_database
 
 from schemas import GraphCreate
 from models import Graph, Node, Edge
@@ -10,6 +11,7 @@ from models import Graph, Node, Edge
 dotenv.load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
 engine = create_engine(DATABASE_URL, echo=True)
+if not database_exists(DATABASE_URL): create_database(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 
@@ -39,5 +41,9 @@ def create_graph(graph: GraphCreate) -> Graph:
     return new_graph
 
 
-def delete_node():
-    pass
+def delete_node(graph_id: int, node_name: str):
+    nodes = session.query(Node).filter(Node.graph_id == graph_id).all()
+    node_ids = {node.name: node.id for node in nodes}
+    node_to_delete = session.get(Node, node_ids[node_name])
+    session.delete(node_to_delete)
+

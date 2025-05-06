@@ -1,7 +1,9 @@
 fastapi~=0.115.12
 uvicorn~=0.34.2
 sqlalchemy~=2.0.40
+sqlalchemy-utils~=0.41.2
 psycopg2
 dotenv~=0.9.9
 pydantic~=2.11.4
 python-dotenv~=1.1.0
+alembic~=1.15.2

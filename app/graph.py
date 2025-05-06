@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from models import Graph, Node, Edge
-from database import get_db, create_graph
+from database import get_db, create_graph, delete_node
 from schemas import GraphCreate, GraphCreateResponse
 
 router = APIRouter(prefix="/api/graph")
@@ -18,7 +18,6 @@ def post_graph(graph: GraphCreate):
 
 @router.get("/{graph_id}", response_model=GraphCreate)
 def get_graph(graph_id: int, db: Session = Depends(get_db)):
-    graph = db.get(Graph, graph_id)
     nodes = db.query(Node).filter(Node.graph_id == graph_id).all()
     node_ids = [nd.id for nd in nodes]
     node_names = {node.id: node.name for node in nodes}
@@ -35,7 +34,7 @@ def get_adj_list(graph_id: int, db: Session = Depends(get_db)):
     node_ids = [nd.id for nd in nodes]
     node_names = {node.id: node.name for node in nodes}
     edges = db.query(Edge).filter(Edge.source_id.in_(node_ids), Edge.target_id.in_(node_ids)).all()
-    adj_list: dict[str, list[str]] = {node_names[edge.source_id]: [] for edge in edges}
+    adj_list: dict[str, list[str]] = {node_names[node.id]: [] for node in nodes}
     logging.info(adj_list)
     for edge in edges:
         adj_list[node_names[edge.source_id]].append(node_names[edge.target_id])
@@ -45,9 +44,20 @@ def get_adj_list(graph_id: int, db: Session = Depends(get_db)):
 
 @router.get("/{graph_id}/reverse_adjacency_list")
 def get_rev_adj_list(graph_id: int, db: Session = Depends(get_db)):
-    pass
+    graph = db.query(Graph).filter(Graph.id == graph_id).first()
+    nodes = db.query(Node).filter(Node.graph_id == graph_id).all()
+    node_ids = [nd.id for nd in nodes]
+    node_names = {node.id: node.name for node in nodes}
+    edges = db.query(Edge).filter(Edge.source_id.in_(node_ids), Edge.target_id.in_(node_ids)).all()
+    adj_list: dict[str, list[str]] = {node_names[node.id]: [] for node in nodes}
+    logging.info(adj_list)
+    for edge in edges:
+        adj_list[node_names[edge.target_id]].append(node_names[edge.source_id])
+
+    return {"adjasency_list": adj_list}
 
 
-@router.delete("/{graph_id}/node/{node_id}")
-def delete_node(graph_id: int, node_id: int, db: Session = Depends(get_db)):
-    pass
+@router.delete("/{graph_id}/node/{node_name}")
+def del_node(graph_id: int, node_name: str):
+    delete_node(graph_id, node_name)
+    return {"success": True}

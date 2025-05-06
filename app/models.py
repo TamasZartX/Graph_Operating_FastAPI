@@ -22,8 +22,8 @@ class Node(Base):
     graph_id = Column(Integer, ForeignKey('graph.id'), nullable=False)
 
     graph = relationship("Graph", back_populates="nodes")
-    edges_out = relationship("Edge", foreign_keys="Edge.source_id", back_populates="source")
-    edges_in = relationship("Edge", foreign_keys="Edge.target_id", back_populates="target")
+    edges_out = relationship("Edge", foreign_keys="Edge.source_id", back_populates="source", cascade="all, delete-orphan")
+    edges_in = relationship("Edge", foreign_keys="Edge.target_id", back_populates="target", cascade="all, delete-orphan")
 
 
 class Edge(Base):
