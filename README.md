@@ -36,10 +36,10 @@ cd Graph_Operating_FastAPI
 
 ### 2. Настройте переменные окружения
 
-Создайте файл .env:
+Создайте файл .env в корневой директории репозитория(Graph_Operating_FastAPI):
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@db:5432/graph_db
+DATABASE_URL=postgresql://user:password@db:5432/graph_db
 ```
 
 ### 3. Запуск Docker

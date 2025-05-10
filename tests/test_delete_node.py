@@ -37,7 +37,7 @@ def test_delete_node_node_not_found(client):
     response = client.delete(f"/api/graph/{graph_id}/node/YaUstalPomogite")
     assert response.status_code == 404
     error = response.json()
-    assert error["detail"]["message"] == "Node 'Y' not found"
+    assert error["detail"]["message"] == "Node 'YaUstalPomogite' not found"
 
 
 def test_delete_node_graph_not_found(client):
